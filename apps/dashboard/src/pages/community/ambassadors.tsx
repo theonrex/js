@@ -78,9 +78,9 @@ const ambassadors = [
     profileImage: "/assets/ambassadors/takaji.jpg",
   },
   {
-    name: "Yash",
-    twitter: "0x_yasshhh_",
-    profileImage: "/assets/ambassadors/yash.jpg",
+    name: "Alfredo",
+    twitter: "@brolag",
+    profileImage: "/assets/ambassadors/brolag.jpg",
   },
   {
     name: "Yuki",
