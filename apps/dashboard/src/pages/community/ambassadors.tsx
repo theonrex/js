@@ -28,7 +28,7 @@ const ambassadors = [
     profileImage: "/assets/ambassadors/frankramos.jpeg",
   },
   {
-    name: "Createive Owls",
+    name: "Creative Owls",
     twitter: "MyCreativeOwls",
     profileImage: "/assets/ambassadors/myCreativeOwl.jpg",
   },
