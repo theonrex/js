@@ -28,9 +28,9 @@ const ambassadors = [
     profileImage: "/assets/ambassadors/frankramos.jpeg",
   },
   {
-    name: "Kien",
-    twitter: "kienngo_",
-    profileImage: "/assets/ambassadors/kienngo.jpg",
+    name: "Createive Owls",
+    twitter: "MyCreativeOwls",
+    profileImage: "/assets/ambassadors/myCreativeOwl.jpg",
   },
   {
     name: "Matt Wong",
