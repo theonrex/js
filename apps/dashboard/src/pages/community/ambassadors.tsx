@@ -79,7 +79,7 @@ const ambassadors = [
   },
   {
     name: "Alfredo",
-    twitter: "@brolag",
+    twitter: "brolag",
     profileImage: "/assets/ambassadors/brolag.jpg",
   },
   {
