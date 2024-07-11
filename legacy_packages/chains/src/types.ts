@@ -12,6 +12,56 @@ export type ChainExplorer = {
   standard: string;
 };
 
+export const ChainStackType = {
+  OPTIMISM_BEDROCK: "optimism_bedrock",
+  ARBITRUM_NITRO: "arbitrum_nitro",
+  ZKSYNC_STACK: "zksync_stack",
+  POLYGON_CDK: "polygon_cdk",
+  AVALANCHE_SUBNET: "avalanche_subnet"
+};
+
+export type ChainStackType = (typeof ChainStackType)[keyof typeof ChainStackType];
+
+export type OptimismBedrockContractsType = {
+  // contracts on parent chain - l1 / l2
+  l1Contracts: {
+    AddressManager?: string;
+    L1CrossDomainMessenger?: string;
+    L1CrossDomainMessengerProxy?: string;
+    L1ERC721Bridge?: string;
+    L1ERC721BridgeProxy?: string;
+    L1StandardBridge?: string;
+    // required for native bridging
+    L1StandardBridgeProxy: string;
+    L2OutputOracle?: string;
+    // required for native bridging
+    L2OutputOracleProxy: string;
+    OptimismMintableERC20Factory?: string;
+    OptimismMintableERC20FactoryProxy?: string;
+    OptimismPortal?: string;
+    // required for native bridging
+    OptimismPortalProxy: string;
+    ProxyAdmin?: string;
+    SystemConfig?: string;
+    SystemConfigProxy?: string;
+  },
+  // contracts on l2 / l3 chain
+  l2Contracts?:
+  {
+    GasPriceOracle?: string;
+    L1Block?: string;
+    L2CrossDomainMessenger?: string;
+    L2ERC721Bridge?: string;
+    L2StandardBridge?: string;
+    L2ToL1MessagePasser?: string;
+  },
+};
+
+export type OptimismBedrockStackInfoType = {
+  parentChainId: number;
+  nativeTokenAddress: string;
+}
+
 export type Chain = {
   name: string;
   title?: string;
@@ -43,6 +93,9 @@ export type Chain = {
     type: string;
     bridges?: Readonly<Array<{ url: string }>>;
   };
+  stackType?: ChainStackType;
+  contracts?: OptimismBedrockContractsType;
+  stackInfo?: OptimismBedrockStackInfoType;
 };
 
 export type ApiChain = Omit<Chain, "features"> & {
