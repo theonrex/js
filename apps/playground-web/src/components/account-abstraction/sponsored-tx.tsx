@@ -45,7 +45,8 @@ export function SponsoredTxPreview() {
             <MediaRenderer
               client={THIRDWEB_CLIENT}
               src={nft.metadata.image}
-              style={{ width: "100%", marginTop: "10px" }}
+              width="400px"
+              style={{ marginTop: "10px" }}
             />
           ) : null}
           {smartAccount ? (

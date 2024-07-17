@@ -95,12 +95,12 @@ function ConnectSmartAccount() {
     return (<>
 <ConnectButton client={client} 
 // account abstraction options
-accountAbstraction={{ chain, sponsorGas: true }} />
+accountAbstraction={{ chain, sponsorGas: true, overrides: { erc20Paymaster: { address: PAYMASTER_ADDRESS, token: USDC_ADDRESS } } }} />
 </>);
 };`}
         lang="tsx"
       />
-      <CodeExample
+      {/* <CodeExample
         preview={<ConnectSmartAccountCustomPreview />}
         code={`// Using your own UI
   import { useConnect } from "thirdweb/react";
@@ -122,7 +122,7 @@ accountAbstraction={{ chain, sponsorGas: true }} />
 </>);
 };`}
         lang="tsx"
-      />
+      /> */}
     </>
   );
 }
