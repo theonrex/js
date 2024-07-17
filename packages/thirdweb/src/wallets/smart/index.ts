@@ -419,11 +419,9 @@ async function approveERC20(args: {
   });
 
   if (accountAllowance > 0n) {
-    console.log("Account already approved for ERC20 paymaster");
     return;
   }
 
-  console.log("Approving account for ERC20 paymaster");
   const approveTx = approve({
     contract: tokenContract,
     spender: erc20Paymaster.address,
@@ -438,7 +436,7 @@ async function approveERC20(args: {
     transaction,
     executeOverride: options.overrides?.execute,
   });
-  const result = await _sendUserOp({
+  await _sendUserOp({
     executeTx,
     options: {
       ...options,
@@ -448,7 +446,6 @@ async function approveERC20(args: {
       },
     },
   });
-  console.log("Account approved for ERC20 paymaster", result.transactionHash);
 }
 
 function createZkSyncAccount(args: {
