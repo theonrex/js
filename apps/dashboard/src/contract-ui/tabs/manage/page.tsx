@@ -95,25 +95,11 @@ function Content(props: { contractAddress: string; chainId: number }) {
       {isOwner && (
         <>
           <Heading as="h2" size="title.md">
-            Edit Extensions
+            Add Extensions
           </Heading>
-          <Alert
-            status="info"
-            fontSize={"small"}
-            borderRadius="md"
-            p={3}
-            bg="alertBg"
-            borderLeft="4px solid"
-            borderLeftColor="blue.500"
-          >
-            <AlertIcon />
-            <Flex direction="column" gap={0.5} ml={1}>
-              <Text color="heading" size="body.lg" fontWeight={500}>
-                Add capabilities to your contract by installing extensions.
-              </Text>
-              <Text>Lookup extensions to install in your contract</Text>
-            </Flex>
-          </Alert>
+          <Text size="body.md" fontWeight={500}>
+            Add capabilities to your contract by installing extensions
+          </Text>
           <Spacer h={10} />
           <InstallExtensionForm
             contract={contract}
@@ -126,19 +112,13 @@ function Content(props: { contractAddress: string; chainId: number }) {
 
       {!isOwner && (
         <>
-          <Alert
-            status="error"
-            fontSize={"small"}
-            borderRadius="md"
-            p={3}
-            bg="alertBg"
-          >
+          <Alert status="error" fontSize={"small"} borderRadius="md" p={3}>
             <AlertIcon />
             <Flex direction="column" gap={0.5} ml={1}>
               <Text color="heading" size="body.lg" fontWeight={500}>
-                You do not have permissions to edit extensions
+                You do not have permissions to edit contract extensions
               </Text>
-              <Text>Connect owner wallet to edit extensions</Text>
+              <Text>Connect owner wallet to edit contract extensions</Text>
             </Flex>
           </Alert>
         </>
