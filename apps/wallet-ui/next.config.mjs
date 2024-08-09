@@ -35,15 +35,33 @@ const securityHeaders = [
   },
 ];
 
+export async function headers() {
+  return [
+    {
+      source: "/(.*)",
+      headers: securityHeaders,
+    },
+  ];
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async headers() {
-    return [
+  webpack: (config) => {
+    config.externals.push("pino-pretty", "lokijs", "encoding");
+    return config;
+  },
+  images: {
+    dangerouslyAllowSVG: true,
+    remotePatterns: [
       {
-        source: "/(.*)",
-        headers: securityHeaders,
+        protocol: "https",
+        hostname: "i1.sndcdn.com",
       },
-    ];
+      {
+        protocol: "https",
+        hostname: "eb963bad841c1e2e25bdcd38e2245fe0.ipfscdn.io",
+      }
+    ],
   },
 };
 
