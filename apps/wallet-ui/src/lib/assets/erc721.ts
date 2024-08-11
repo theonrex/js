@@ -1,3 +1,4 @@
+import "server-only";
 import type { Erc721Token } from "@/types/Erc721Token";
 import { chainIdToName, nameToChainId } from "@/util/simplehash";
 import type { Address } from "thirdweb";

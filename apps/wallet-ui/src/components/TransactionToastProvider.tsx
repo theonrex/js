@@ -1,22 +1,22 @@
 "use client";
-import { useToast } from "@/components/ui/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { CheckIcon, Loader2, OctagonXIcon } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 import { type Hex, ZERO_ADDRESS, defineChain, waitForReceipt } from "thirdweb";
 import { useActiveAccount } from "thirdweb/react";
 import { getTransactionStore } from "thirdweb/transaction";
+import { shortenHex } from "thirdweb/utils";
 import { getChain } from "../lib/chains";
 import { client } from "../lib/client";
 import { revalidate } from "../lib/revalidate";
-import { ToastAction } from "./ui/toast";
-import { Toaster } from "./ui/toaster";
+import { Button } from "./ui/button";
 
 const transactionQueue = new Set();
 export function TransactionToastProvider() {
   const account = useActiveAccount();
-  const { toast } = useToast();
   const store = useMemo(() => {
     return getTransactionStore(account?.address || ZERO_ADDRESS);
   }, [account?.address]);
@@ -33,20 +33,17 @@ export function TransactionToastProvider() {
       chainId,
     }: { transactionHash: Hex; chainId: number }) => {
       const chainData = await getChain(chainId.toString());
-      toast({
-        id: transactionHash,
-        title: "Transaction pending",
-        // description: shortenHex(transactionHash),
+      toast("Transaction pending", {
+        id: toast(transactionHash),
+        description: shortenHex(transactionHash),
         duration: Number.POSITIVE_INFINITY,
         icon: <Loader2 className="w-4 h-4 animate-spin" />,
         action: chainData.explorers?.length ? (
           <Link
-            target="_blankr"
+            target="_blank"
             href={`${chainData.explorers[0].url}/tx/${transactionHash}`}
           >
-            <ToastAction altText="View transaction on block explorer">
-              View
-            </ToastAction>
+            <Button>View</Button>
           </Link>
         ) : undefined,
       });
@@ -57,10 +54,9 @@ export function TransactionToastProvider() {
         transactionHash,
       })
         .then((receipt) => {
-          toast({
-            id: transactionHash,
-            title: "Transaction confirmed",
-            // description: shortenHex(receipt.transactionHash),
+          toast("Transaction confirmed", {
+            id: toast(transactionHash),
+            description: shortenHex(receipt.transactionHash),
             duration: 5000,
             icon: <CheckIcon className="w-4 h-4" />,
             action: chainData.explorers?.length ? (
@@ -68,9 +64,7 @@ export function TransactionToastProvider() {
                 target="_blank"
                 href={`${chainData.explorers[0].url}/tx/${receipt.transactionHash}`}
               >
-                <ToastAction altText="View transaction on block explorer">
-                  View
-                </ToastAction>
+                <Button>View</Button>
               </Link>
             ) : undefined,
           });
@@ -80,11 +74,9 @@ export function TransactionToastProvider() {
           }, 5000);
         })
         .catch((e) => {
-          toast({
-            id: transactionHash,
-            title: "Transaction failed",
+          toast("Transaction failed", {
+            id: toast(transactionHash),
             description: e.message,
-            variant: "destructive",
             icon: <OctagonXIcon className="w-4 h-4" />,
             duration: 5000,
             action: chainData.explorers?.length ? (
@@ -92,15 +84,13 @@ export function TransactionToastProvider() {
                 target="_blank"
                 href={`${chainData.explorers[0].url}/tx/${transactionHash}`}
               >
-                <ToastAction altText="View transaction on block explorer">
-                  View
-                </ToastAction>
+                <Button>View</Button>
               </Link>
             ) : undefined,
           });
         });
     },
-    [toast, account?.address],
+    [account?.address],
   );
 
   useQuery({

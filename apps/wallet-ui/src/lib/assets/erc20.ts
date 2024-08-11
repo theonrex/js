@@ -1,3 +1,4 @@
+import "server-only";
 import type { Erc20Token } from "@/types/Erc20Token";
 import { chainIdToName, nameToChainId } from "@/util/simplehash";
 import type { Address } from "thirdweb";

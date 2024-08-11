@@ -34,18 +34,23 @@ export default async function Layout({
   children: React.ReactNode;
   params: { ecosystem: string; address: string };
 }) {
-  const userAddress = await getCurrentUser();
+  const userAddressPromise = getCurrentUser();
+  const ensPromise = resolveName({
+    client,
+    address: params.address,
+  });
+  const thirdwebChainsPromise = getChains();
+
+  const [userAddress, ens, thirdwebChains] = await Promise.all([
+    userAddressPromise,
+    ensPromise,
+    thirdwebChainsPromise,
+  ]);
 
   if (userAddress !== params.address) {
     redirect(`/wallet/${userAddress}`);
   }
 
-  const ens = await resolveName({
-    client,
-    address: params.address,
-  });
-
-  const thirdwebChains = await getChains();
   const simpleHashChains = thirdwebChains.filter((chain) =>
     SIMPLEHASH_NFT_SUPPORTED_CHAIN_IDS.includes(chain.chainId),
   );

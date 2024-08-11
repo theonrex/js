@@ -23,10 +23,12 @@ export default function ConnectButton({
       chains={[mainnet, base, optimism, arbitrum, blast, zkSync]}
       wallets={[ecosystemWallet(ecosystem)]}
       client={client}
-      theme={theme as "light" | "dark"}
+      theme={theme === "light" ? "light" : "dark"}
       auth={{
         getLoginPayload: generatePayload,
-        doLogin: login,
+        doLogin: async (p) => {
+          login(p);
+        },
         isLoggedIn,
         doLogout: logout,
       }}
