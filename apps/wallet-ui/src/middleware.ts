@@ -1,4 +1,3 @@
-import { getCurrentUser } from "@/lib/auth";
 import { type NextRequest, NextResponse } from "next/server";
 
 export const config = {
@@ -14,6 +13,7 @@ export const config = {
   ],
 };
 
+const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
 
@@ -25,7 +25,7 @@ export default async function middleware(req: NextRequest) {
   const path = `${url.pathname}${searchParams.length > 0 ? `?${searchParams}` : ""}`;
 
   // keep root application at `/`
-  if (hostname === process.env.NEXT_PUBLIC_ROOT_DOMAIN || hostname === null) {
+  if (hostname === ROOT_DOMAIN || hostname === null) {
     return NextResponse.rewrite(
       new URL(`/${path === "/" ? "" : path}`, req.url),
     );
@@ -35,7 +35,17 @@ export default async function middleware(req: NextRequest) {
   const ecosystem = hostname.split(".")[0];
 
   // If the user is logged in, send them to their wallet page
-  const user = await getCurrentUser();
+  const userResponse = await fetch(`${ROOT_DOMAIN?.includes("localhost") ? "http" : "https"}://${ROOT_DOMAIN}/api/user`, {
+    method: "GET",
+    headers: {
+      "Authorization": req.cookies.get('jwt')?.value ?? ""
+    }
+  });
+  if (!userResponse.ok) {
+    throw new Error("Failed to check for logged in user");
+  }
+  const { user } = await userResponse.json();
+
   if (user) {
     return NextResponse.rewrite(
       new URL(`/${ecosystem}/wallet/${user}`, req.url),
