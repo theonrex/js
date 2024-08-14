@@ -1,7 +1,6 @@
 import ConnectButton from "@/components/ConnectButton";
 import { authedOnly } from "@/lib/auth";
 import { getEcosystemInfo } from "@/lib/ecosystems";
-import Image from "next/image";
 
 export default async function Layout({
   children,
@@ -17,7 +16,7 @@ export default async function Layout({
       <header className="hidden sm:block w-full py-4 border-b border-accent bg-card">
         <div className="container mx-auto flex justify-between">
           <div className="flex items-center gap-2">
-            <Image
+            <img
               className="w-8 h-8"
               src={ecosystem.imageUrl}
               alt={ecosystem.name}

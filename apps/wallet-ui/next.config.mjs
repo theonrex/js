@@ -52,16 +52,6 @@ const nextConfig = {
   },
   images: {
     dangerouslyAllowSVG: true,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "i1.sndcdn.com",
-      },
-      {
-        protocol: "https",
-        hostname: "eb963bad841c1e2e25bdcd38e2245fe0.ipfscdn.io",
-      }
-    ],
   },
 };
 

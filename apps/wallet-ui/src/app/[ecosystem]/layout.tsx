@@ -17,6 +17,9 @@ export async function generateMetadata(
     openGraph: {
       images: [ecosystem.imageUrl, ...previousImages],
     },
+    icons: {
+      icon: ecosystem.imageUrl,
+    },
   };
 }
 

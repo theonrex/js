@@ -1,6 +1,5 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import { resolveScheme } from "thirdweb/storage";
 import { client } from "../lib/client";
 
@@ -35,7 +34,7 @@ export function ChainIcon(props: {
   });
 
   return (
-    <Image
+    <img
       alt=""
       width={100}
       height={100}
