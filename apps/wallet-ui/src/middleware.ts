@@ -35,12 +35,15 @@ export default async function middleware(req: NextRequest) {
   const ecosystem = hostname.split(".")[0];
 
   // If the user is logged in, send them to their wallet page
-  const userResponse = await fetch(`${ROOT_DOMAIN?.includes("localhost") ? "http" : "https"}://${ROOT_DOMAIN}/api/user`, {
-    method: "GET",
-    headers: {
-      "Authorization": req.cookies.get('jwt')?.value ?? ""
-    }
-  });
+  const userResponse = await fetch(
+    `${ROOT_DOMAIN?.includes("localhost") ? "http" : "https"}://${ROOT_DOMAIN}/api/user`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: req.cookies.get("jwt")?.value ?? "",
+      },
+    },
+  );
   if (!userResponse.ok) {
     throw new Error("Failed to check for logged in user");
   }
@@ -48,7 +51,7 @@ export default async function middleware(req: NextRequest) {
 
   if (user) {
     return NextResponse.rewrite(
-      new URL(`/${ecosystem}/wallet/${user}`, req.url),
+      new URL(`/${ecosystem}/wallet/${user}?${searchParams}`, req.url),
     );
   }
 

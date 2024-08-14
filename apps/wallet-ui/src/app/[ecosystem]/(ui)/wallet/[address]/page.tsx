@@ -1,5 +1,4 @@
-import NftGallery, { NftGalleryLoading } from "@/components/NftGallery";
-import { Suspense } from "react";
+import NftGallery from "@/components/NftGallery";
 import { getAddress } from "thirdweb";
 
 export default async function Page({
@@ -9,9 +8,5 @@ export default async function Page({
   params: { address: string };
   searchParams: { chainId: string };
 }) {
-  return (
-    <Suspense fallback={<NftGalleryLoading />}>
-      <NftGallery owner={getAddress(address)} chainId={Number(chainId)} />
-    </Suspense>
-  );
+  return <NftGallery owner={getAddress(address)} chainId={Number(chainId)} />;
 }
