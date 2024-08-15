@@ -14,6 +14,10 @@ import { NFTDetails } from "./components/NFTDetails";
 import { PermissionsTable } from "./components/PermissionsTable";
 import { TokenDetails } from "./components/TokenDetails";
 import { getGuidesAndTemplates } from "./helpers/getGuidesAndTemplates";
+import { detectFeatures } from "components/contract-components/utils";
+import { useV5DashboardChain } from "lib/v5-adapter";
+import { getContract } from "thirdweb";
+import { thirdwebClient } from "lib/thirdweb-client";
 
 interface ContractOverviewPageProps {
   contractAddress?: string;
@@ -39,14 +43,81 @@ export const ContractOverviewPage: React.FC<ContractOverviewPageProps> = ({
     [detectedFeatureNames, contractTypeData],
   );
 
+  const chain = useV5DashboardChain(contract?.chainId);
+  const contractV5 =
+    chain && contract
+      ? getContract({
+          address: contract.getAddress(),
+          chain,
+          client: thirdwebClient,
+        })
+      : undefined;
+
   if (!contractAddress) {
     return <div>No contract address provided</div>;
   }
 
+  const isLazyMintable = detectFeatures(contract, [
+    "ERC721LazyMintable",
+    "ERC1155LazyMintableV2",
+    "ERC1155LazyMintableV1",
+  ]);
+
+  const erc721hasClaimConditions = detectFeatures(contract, [
+    "ERC721ClaimPhasesV1",
+    "ERC721ClaimPhasesV2",
+    "ERC721ClaimConditionsV1",
+    "ERC721ClaimConditionsV2",
+    "ERC721ClaimCustom",
+  ]);
+
+  const erc20HasClaimConditions = detectFeatures(contract, [
+    "ERC20ClaimPhasesV1",
+    "ERC20ClaimPhasesV2",
+    "ERC20ClaimConditionsV1",
+    "ERC20ClaimConditionsV2",
+  ]);
+
+  const isErc721SharedMetadadata = detectFeatures(contract, [
+    "ERC721SharedMetadata",
+  ]);
+
+  const tokenIsMintable = detectFeatures(contract, ["ERC20Mintable"]);
+
+  const nftIsMintable = detectFeatures(contract, [
+    "ERC721Mintable",
+    "ERC1155Mintable",
+  ]);
+
+  const isAccountFactory = detectFeatures(contract, ["AccountFactory"]);
+
+  const isRevealable = detectFeatures(contract, [
+    "ERC721Revealable",
+    "ERC1155Revealable",
+  ]);
+
+  const isErc721 = detectFeatures(contract, ["ERC721"]);
+
+  const isErc1155 = detectFeatures(contract, ["ERC1155"]);
+
   return (
     <SimpleGrid columns={{ base: 1, xl: 10 }} gap={20}>
       <GridItem as={Flex} colSpan={{ xl: 7 }} direction="column" gap={16}>
-        {contract && <ContractChecklist contract={contract} />}
+        {contractV5 && (
+          <ContractChecklist
+            contract={contractV5}
+            isLazyMintable={isLazyMintable}
+            erc20HasClaimConditions={erc20HasClaimConditions}
+            erc721hasClaimConditions={erc721hasClaimConditions}
+            isErc721SharedMetadadata={isErc721SharedMetadadata}
+            nftIsMintable={nftIsMintable}
+            tokenIsMintable={tokenIsMintable}
+            isAccountFactory={isAccountFactory}
+            isRevealable={isRevealable}
+            isErc721={isErc721}
+            isErc1155={isErc1155}
+          />
+        )}
         {contract && (
           <AnalyticsOverview
             contractAddress={contractAddress}

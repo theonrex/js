@@ -1,28 +1,33 @@
-import { thirdwebClient } from "@/constants/client";
 import {
   useIsAdmin,
   useIsMinter,
 } from "@3rdweb-sdk/react/hooks/useContractRoles";
-import {
-  useAccounts,
-  useBatchesToReveal,
-  useClaimConditions,
-  useClaimedNFTSupply,
-  useNFTs,
-  useSharedMetadata,
-  useTokenSupply,
-} from "@thirdweb-dev/react";
-import type { SmartContract } from "@thirdweb-dev/sdk";
-import { detectFeatures } from "components/contract-components/utils";
+import { useBatchesToReveal, useClaimConditions } from "@thirdweb-dev/react";
 import { StepsCard } from "components/dashboard/StepsCard";
 import { useTabHref } from "contract-ui/utils";
-import { BigNumber } from "ethers";
-import { useV5DashboardChain } from "lib/v5-adapter";
-import { getContract } from "thirdweb";
+import type { ThirdwebContract } from "thirdweb";
+import { totalSupply as totalSupply20 } from "thirdweb/extensions/erc20";
+import { getAllAccounts } from "thirdweb/extensions/erc4337";
+import {
+  getNFTs as get721NFTs,
+  nextTokenIdToMint,
+  sharedMetadata,
+} from "thirdweb/extensions/erc721";
+import { useReadContract } from "thirdweb/react";
 import { Link, Text } from "tw-components";
 
 interface ContractChecklistProps {
-  contract: SmartContract;
+  contract: ThirdwebContract;
+  isLazyMintable: boolean;
+  erc721hasClaimConditions: boolean;
+  erc20HasClaimConditions: boolean;
+  isErc721SharedMetadadata: boolean;
+  tokenIsMintable: boolean;
+  nftIsMintable: boolean;
+  isAccountFactory: boolean;
+  isRevealable: boolean;
+  isErc1155: boolean;
+  isErc721: boolean;
 }
 
 type Step = {
@@ -33,25 +38,56 @@ type Step = {
 
 export const ContractChecklist: React.FC<ContractChecklistProps> = ({
   contract,
+  isLazyMintable,
+  erc721hasClaimConditions,
+  erc20HasClaimConditions,
+  isErc721SharedMetadadata,
+  tokenIsMintable,
+  nftIsMintable,
+  isAccountFactory,
+  // isRevealable,
+  isErc1155,
+  isErc721,
 }) => {
-  const chain = useV5DashboardChain(contract.chainId);
-  const contractv5 = getContract({
-    address: contract.getAddress(),
-    chain: chain,
-    client: thirdwebClient,
-  });
   const nftHref = useTabHref("nfts");
   const tokenHref = useTabHref("tokens");
   const accountsHref = useTabHref("accounts");
   const claimConditionsHref = useTabHref("claim-conditions");
+  const erc721Claimed = useReadContract(nextTokenIdToMint, {
+    contract,
+    queryOptions: { enabled: isErc721 },
+  });
+  const claimConditions = useClaimConditions(contractV4);
+  const erc20Supply = useReadContract(totalSupply20, {
+    contract,
+    queryOptions: {
+      enabled: !isErc1155 && !isErc721,
+    },
+  });
 
-  const nfts = useNFTs(contract, { count: 1 });
-  const erc721Claimed = useClaimedNFTSupply(contract);
-  const claimConditions = useClaimConditions(contract);
-  const erc20Supply = useTokenSupply(contract);
-  const batchesToReveal = useBatchesToReveal(contract);
-  const accounts = useAccounts(contract);
-  const sharedMetadata = useSharedMetadata(contract);
+  // todo replace this
+  // const batchesToReveal = useBatchesToReveal(contractV4);
+  const accounts = useReadContract(getAllAccounts, {
+    contract,
+    // Ideally should be "is4337" but better having something than nothing
+    queryOptions: { enabled: !isErc1155 && !isErc721 },
+  });
+  const _sharedMetadata = useReadContract(sharedMetadata, {
+    contract,
+    queryOptions: { enabled: isErc721 },
+  });
+  const nfts721 = useReadContract(get721NFTs, {
+    contract,
+    count: 1,
+    queryOptions: { enabled: isErc721 },
+  });
+  const nfts1155 = useReadContract(get721NFTs, {
+    contract,
+    count: 1,
+    queryOptions: { enabled: isErc1155 },
+  });
+  const hasNft =
+    (nfts721.data?.length || 0) > 0 || (nfts1155.data?.length || 0) > 0;
 
   const steps: Step[] = [
     {
@@ -61,18 +97,13 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
     },
   ];
 
-  const isAdmin = useIsAdmin(contractv5);
-  const isMinter = useIsMinter(contractv5);
+  const isAdmin = useIsAdmin(contract);
+  const isMinter = useIsMinter(contract);
 
   if (!isAdmin) {
     return null;
   }
 
-  const isLazyMintable = detectFeatures(contract, [
-    "ERC721LazyMintable",
-    "ERC1155LazyMintableV2",
-    "ERC1155LazyMintableV1",
-  ]);
   if (isLazyMintable && isMinter) {
     steps.push({
       title: "First NFT uploaded",
@@ -85,13 +116,10 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
           to upload your NFT metadata.
         </Text>
       ),
-      completed: (nfts.data?.length || 0) > 0,
+      completed: hasNft,
     });
   }
 
-  const isErc721SharedMetadadata = detectFeatures(contract, [
-    "ERC721SharedMetadata",
-  ]);
   if (isErc721SharedMetadadata) {
     steps.push({
       title: "Set NFT Metadata",
@@ -104,23 +132,10 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
           to set your NFT metadata.
         </Text>
       ),
-      completed: !!sharedMetadata?.data,
+      completed: !!_sharedMetadata?.data?.length,
     });
   }
 
-  const erc721hasClaimConditions = detectFeatures(contract, [
-    "ERC721ClaimPhasesV1",
-    "ERC721ClaimPhasesV2",
-    "ERC721ClaimConditionsV1",
-    "ERC721ClaimConditionsV2",
-    "ERC721ClaimCustom",
-  ]);
-  const erc20HasClaimConditions = detectFeatures(contract, [
-    "ERC20ClaimPhasesV1",
-    "ERC20ClaimPhasesV2",
-    "ERC20ClaimConditionsV1",
-    "ERC20ClaimConditionsV2",
-  ]);
   if (erc721hasClaimConditions || erc20HasClaimConditions) {
     steps.push({
       title: "Set Claim Conditions",
@@ -136,15 +151,15 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
       ),
       completed:
         (claimConditions.data?.length || 0) > 0 ||
-        BigNumber.from(erc721Claimed?.data || 0).gt(0) ||
-        BigNumber.from(erc20Supply?.data?.value || 0).gt(0),
+        (erc721Claimed.data || 0n) > 0n ||
+        (erc20Supply.data || 0n) > 0n,
     });
   }
   if (erc721hasClaimConditions) {
     steps.push({
       title: "First NFT claimed",
       children: <Text size="label.sm">No NFTs have been claimed so far.</Text>,
-      completed: BigNumber.from(erc721Claimed?.data || 0).gt(0),
+      completed: (erc721Claimed.data || 0n) > 0n,
     });
   }
 
@@ -154,11 +169,10 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
       children: (
         <Text size="label.sm">No tokens have been claimed so far.</Text>
       ),
-      completed: BigNumber.from(erc20Supply?.data?.value || 0).gt(0),
+      completed: (erc20Supply.data || 0n) > 0n,
     });
   }
 
-  const tokenIsMintable = detectFeatures(contract, ["ERC20Mintable"]);
   if (tokenIsMintable && isMinter) {
     steps.push({
       title: "First token minted",
@@ -171,14 +185,10 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
           to mint your first token.
         </Text>
       ),
-      completed: BigNumber.from(erc20Supply.data?.value || 0).gt(0),
+      completed: (erc20Supply.data || 0n) > 0n,
     });
   }
 
-  const nftIsMintable = detectFeatures(contract, [
-    "ERC721Mintable",
-    "ERC1155Mintable",
-  ]);
   if (nftIsMintable && isMinter) {
     steps.push({
       title: "First NFT minted",
@@ -191,11 +201,10 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
           to mint your first token.
         </Text>
       ),
-      completed: (nfts.data?.length || 0) > 0,
+      completed: hasNft,
     });
   }
 
-  const isAccountFactory = detectFeatures(contract, ["AccountFactory"]);
   if (isAccountFactory) {
     steps.push({
       title: "First account created",
@@ -212,27 +221,24 @@ export const ContractChecklist: React.FC<ContractChecklistProps> = ({
     });
   }
 
-  const isRevealable = detectFeatures(contract, [
-    "ERC721Revealable",
-    "ERC1155Revealable",
-  ]);
-  const needsReveal = batchesToReveal.data?.length;
-  if (isRevealable && needsReveal) {
-    steps.push({
-      title: "NFTs revealed",
-      children: (
-        <Text size="label.sm">
-          Head to the{" "}
-          <Link href={nftHref} color="blue.500">
-            NFTs tab
-          </Link>{" "}
-          to reveal your NFTs.
-        </Text>
-      ),
-      // This is always false because if there are batches to reveal, the step doesn't show.
-      completed: false,
-    });
-  }
+  //todo un-comment once replaced useBatchesToReveal
+  // const needsReveal = batchesToReveal.data?.length;
+  // if (isRevealable && needsReveal) {
+  //   steps.push({
+  //     title: "NFTs revealed",
+  //     children: (
+  //       <Text size="label.sm">
+  //         Head to the{" "}
+  //         <Link href={nftHref} color="blue.500">
+  //           NFTs tab
+  //         </Link>{" "}
+  //         to reveal your NFTs.
+  //       </Text>
+  //     ),
+  //     // This is always false because if there are batches to reveal, the step doesn't show.
+  //     completed: false,
+  //   });
+  // }
 
   if (steps.length === 1) {
     return null;
